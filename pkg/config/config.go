@@ -3,6 +3,8 @@ package config
 import (
 	"os"
 	"strconv"
+
+	"github.com/thdxg/logfmt/pkg/types"
 )
 
 type Config struct {
@@ -59,8 +61,12 @@ func Load(timeFormat *string, levelFormat *string, color *bool, hideAttrs *bool)
 	}
 
 	// Validation
-	if cfg.LevelFormat != "full" && cfg.LevelFormat != "short" && cfg.LevelFormat != "tiny" {
-		cfg.LevelFormat = "full"
+	switch cfg.LevelFormat {
+	case types.LevelFormatFull:
+	case types.LevelFormatShort:
+	case types.LevelFormatTiny:
+	default:
+		cfg.LevelFormat = types.LevelFormatFull
 	}
 
 	return cfg
