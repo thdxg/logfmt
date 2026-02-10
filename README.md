@@ -18,12 +18,6 @@ Download the latest binary for your platform (Linux, macOS, Windows) from the [R
 go install github.com/thdxg/logfmt@latest
 ```
 
-### Mise (via ubi)
-
-```sh
-mise use ubi:thdxg/logfmt@latest
-```
-
 ## Usage
 
 ```sh
@@ -40,15 +34,18 @@ $ go run ./cmd/autoscaler 2>&1 | logfmt
 You can configure `logfmt` using command line flags, environment variables, or a config file (`.logfmt.yaml` in home or current directory).
 
 #### Flags
+
 ```sh
 logfmt --time-format "15:04:05" --level-format short --color=false
 ```
+
 - `--time-format`: Timestamp format (Go layout). Default: `2006-01-02 15:04:05`
 - `--level-format`: Level style (`full`, `short`, `tiny`). Default: `full`
 - `--color`: Enable/disable colored output. Default: `true`
 - `--hide-attrs`: Show only time, level, and message. Default: `false`
 
 #### Config File (.logfmt.yaml)
+
 ```yaml
 time-format: "15:04:05"
 level-format: "short"
@@ -57,6 +54,7 @@ hide-attrs: false
 ```
 
 #### Environment Variables (prefix `LOGFMT_`)
+
 - `LOGFMT_TIME_FORMAT`
 - `LOGFMT_LEVEL_FORMAT`
 - `LOGFMT_COLOR`
