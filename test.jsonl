@@ -1,0 +1,8 @@
+{"time":"2023-10-27T10:00:00Z", "level":"INFO", "msg":"Application started"}
+{"time":"2023-10-27T10:00:01Z", "level":"DEBUG", "msg":"Initializing database connection", "db":{"host":"localhost", "port":5432}}
+{"time":"2023-10-27T10:00:02Z", "level":"WARN", "msg":"Slow query detected", "duration":"500ms", "query":"SELECT * FROM users"}
+{"time":"2023-10-27T10:00:03Z", "level":"ERROR", "msg":"Connection failed", "error":"connection refused", "tags":["db", "critical"]}
+{"time":"2023-10-27T10:00:04Z", "level":"INFO", "msg":"User logged in", "user":{"id":123, "name":"Alice", "roles":["admin", "editor"]}}
+This is not a JSON line and should be printed as is
+{"time":"2023-10-27T10:00:05Z", "level":"INFO", "msg":"Request processed", "status":200, "path":"/api/v1/users"}
+
