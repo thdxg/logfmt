@@ -1,5 +1,9 @@
 # logfmt
 
+[![CI](https://github.com/thdxg/logfmt/actions/workflows/ci.yaml/badge.svg)](https://github.com/thdxg/logfmt/actions/workflows/ci.yaml)
+[![Release](https://img.shields.io/github/v/release/thdxg/logfmt)](https://github.com/thdxg/logfmt/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/thdxg/logfmt)](https://goreportcard.com/report/github.com/thdxg/logfmt)
+
 `logfmt` reads structured logs from stdin and formats into readable output
 
 ## Installation
