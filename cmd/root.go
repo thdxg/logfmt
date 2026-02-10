@@ -20,6 +20,12 @@ var rootCmd = &cobra.Command{
 	Short: "Formats structured logs from stdin",
 	Long:  `logfmt reads structured logs (JSON) from stdin and formats them into a readable output.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		stat, _ := os.Stdin.Stat()
+		if (stat.Mode() & os.ModeCharDevice) != 0 {
+			_ = cmd.Help()
+			return
+		}
+
 		cfg, err := config.Load(cfgFile, cmd.Flags())
 		if err != nil {
 			cobra.CheckErr(err)
