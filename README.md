@@ -4,8 +4,14 @@
 
 ## Installation
 
+### Binary (Recommended)
+
+Download the latest binary for your platform (Linux, macOS, Windows) from the [Releases page](https://github.com/thdxg/logfmt/releases).
+
+### Go Install
+
 ```sh
-go install github.com/thdxg/logfmt
+go install github.com/thdxg/logfmt@latest
 ```
 
 ## Usage
@@ -51,7 +57,3 @@ hide-attrs: false
 I've been using libraries like [`tint`](https://github.com/lmittmann/tint) to format structured logs in my Go projects.
 Formatting logs is primarily for better readability during local development, but using a library for this means adding an unnecessary dependency to your project.
 Having a customizable local command line tool to format any kind of json logs solves this problem.
-
-## WIP
-
-- Package distribution
