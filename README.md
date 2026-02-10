@@ -18,6 +18,12 @@ Download the latest binary for your platform (Linux, macOS, Windows) from the [R
 go install github.com/thdxg/logfmt@latest
 ```
 
+### Mise (via ubi)
+
+```sh
+mise use ubi:thdxg/logfmt@latest
+```
+
 ## Usage
 
 ```sh
