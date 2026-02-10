@@ -22,7 +22,12 @@ func Format(entry map[string]any, cfg config.Config) string {
 		attrs := flattenMap(entry)
 		sort.Strings(attrs)
 		if len(attrs) > 0 {
-			attrStr = " " + strings.Join(attrs, " ")
+			rawAttrs := strings.Join(attrs, " ")
+			if cfg.Color {
+				attrStr = " " + color.New(color.FgHiBlack).Sprint(rawAttrs)
+			} else {
+				attrStr = " " + rawAttrs
+			}
 		}
 	}
 
