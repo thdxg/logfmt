@@ -6,19 +6,20 @@ import (
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/thdxg/logfmt/pkg/types"
 )
 
 type Config struct {
-	TimeFormat  string `mapstructure:"time-format"`
-	LevelFormat string `mapstructure:"level-format"`
-	Color       bool   `mapstructure:"color"`
-	HideAttrs   bool   `mapstructure:"hide-attrs"`
+	TimeFormat  string            `mapstructure:"time-format"`
+	LevelFormat types.LevelFormat `mapstructure:"level-format"`
+	Color       bool              `mapstructure:"color"`
+	HideAttrs   bool              `mapstructure:"hide-attrs"`
 }
 
 func Default() Config {
 	return Config{
 		TimeFormat:  "2006-01-02 15:04:05",
-		LevelFormat: "full",
+		LevelFormat: types.LevelFormatFull,
 		Color:       true,
 		HideAttrs:   false,
 	}
@@ -68,5 +69,11 @@ func Load(cfgFile string, flags *pflag.FlagSet) (Config, error) {
 	if err := v.Unmarshal(&cfg); err != nil {
 		return defaults, err
 	}
+
+	// Validate LevelFormat
+	if !cfg.LevelFormat.IsValid() {
+		cfg.LevelFormat = defaults.LevelFormat
+	}
+
 	return cfg, nil
 }

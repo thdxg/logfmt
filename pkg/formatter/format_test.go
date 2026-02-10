@@ -2,13 +2,23 @@ package formatter
 
 import (
 	"testing"
+	"time"
 
 	"github.com/thdxg/logfmt/pkg/config"
+	"github.com/thdxg/logfmt/pkg/types"
 )
+
+func mustParseTime(layout, value string) time.Time {
+	t, err := time.Parse(layout, value)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
 
 type test struct {
 	name   string
-	entry  map[string]any
+	entry  types.Entry
 	config config.Config
 	want   string
 }
@@ -17,69 +27,86 @@ func Test_Format(t *testing.T) {
 	tests := []test{
 		{
 			name: "basic",
-			entry: map[string]any{
-				"time":  "2006-01-02T15:04:05.383759-05:00",
-				"level": "INFO",
-				"msg":   "Basic log",
+			entry: types.Entry{
+				Time:  mustParseTime(time.RFC3339, "2006-01-02T15:04:05Z"),
+				Level: "INFO",
+				Msg:   "Basic log",
 			},
-			config: config.Config{TimeFormat: "2006-01-02 15:04:05", LevelFormat: "full"},
+			config: config.Config{TimeFormat: "2006-01-02 15:04:05", LevelFormat: types.LevelFormatFull},
 			want:   "2006-01-02 15:04:05 INFO Basic log",
 		},
 		{
 			name: "short level",
-			entry: map[string]any{
-				"time":  "2006-01-02T15:04:05Z",
-				"level": "INFO",
-				"msg":   "Short level",
+			entry: types.Entry{
+				Time:  mustParseTime(time.RFC3339, "2006-01-02T15:04:05Z"),
+				Level: "INFO",
+				Msg:   "Short level",
 			},
-			config: config.Config{TimeFormat: "15:04", LevelFormat: "short"},
+			config: config.Config{TimeFormat: "15:04", LevelFormat: types.LevelFormatShort},
 			want:   "15:04 INF Short level",
 		},
 		{
 			name: "tiny level",
-			entry: map[string]any{
-				"time":  "2006-01-02T15:04:05Z",
-				"level": "WARNING",
-				"msg":   "Tiny level",
+			entry: types.Entry{
+				Time:  mustParseTime(time.RFC3339, "2006-01-02T15:04:05Z"),
+				Level: "WARNING",
+				Msg:   "Tiny level",
 			},
-			config: config.Config{TimeFormat: "15:04", LevelFormat: "tiny"},
+			config: config.Config{TimeFormat: "15:04", LevelFormat: types.LevelFormatTiny},
 			want:   "15:04 W Tiny level",
 		},
 		{
 			name: "nested attributes",
-			entry: map[string]any{
-				"time":  "2006-01-02T15:04:05Z",
-				"level": "INFO",
-				"msg":   "Nested",
-				"user": map[string]any{
-					"name": "Alice",
-					"id":   123,
+			entry: types.Entry{
+				Time:  mustParseTime(time.RFC3339, "2006-01-02T15:04:05Z"),
+				Level: "INFO",
+				Msg:   "Nested",
+				Attrs: map[string]any{
+					"user": map[string]any{
+						"name": "Alice",
+						"id":   123,
+					},
 				},
 			},
-			config: config.Config{TimeFormat: "15:04", LevelFormat: "full"},
+			config: config.Config{TimeFormat: "15:04", LevelFormat: types.LevelFormatFull},
 			want:   "15:04 INFO Nested user.id=123 user.name=Alice",
 		},
 		{
 			name: "hide attributes",
-			entry: map[string]any{
-				"time":  "2006-01-02T15:04:05Z",
-				"level": "INFO",
-				"msg":   "Hidden",
-				"foo":   "bar",
+			entry: types.Entry{
+				Time:  mustParseTime(time.RFC3339, "2006-01-02T15:04:05Z"),
+				Level: "INFO",
+				Msg:   "Hidden",
+				Attrs: map[string]any{
+					"foo": "bar",
+				},
 			},
-			config: config.Config{TimeFormat: "15:04", LevelFormat: "full", HideAttrs: true},
+			config: config.Config{TimeFormat: "15:04", LevelFormat: types.LevelFormatFull, HideAttrs: true},
 			want:   "15:04 INFO Hidden",
 		},
 		{
 			name: "array attributes",
-			entry: map[string]any{
-				"time":  "2006-01-02T15:04:05Z",
-				"level": "INFO",
-				"msg":   "Array",
-				"tags":  []any{"a", "b"},
+			entry: types.Entry{
+				Time:  mustParseTime(time.RFC3339, "2006-01-02T15:04:05Z"),
+				Level: "INFO",
+				Msg:   "Array",
+				Attrs: map[string]any{
+					"tags": []any{"a", "b"},
+				},
 			},
-			config: config.Config{TimeFormat: "15:04", LevelFormat: "full"},
+			config: config.Config{TimeFormat: "15:04", LevelFormat: types.LevelFormatFull},
 			want:   "15:04 INFO Array tags=[a b]",
+		},
+		{
+			name: "raw time fallback",
+			entry: types.Entry{
+				Time:    time.Time{},
+				RawTime: "invalid-time",
+				Level:   "INFO",
+				Msg:     "Fallback",
+			},
+			config: config.Config{TimeFormat: "15:04", LevelFormat: types.LevelFormatFull},
+			want:   "invalid-time INFO Fallback",
 		},
 	}
 	for _, tt := range tests {

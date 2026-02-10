@@ -4,22 +4,30 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/fatih/color"
 	"github.com/thdxg/logfmt/pkg/config"
+	"github.com/thdxg/logfmt/pkg/types"
 )
 
-func Format(entry map[string]any, cfg config.Config) string {
+func Format(entry types.Entry, cfg config.Config) string {
 	// Extract standard fields
-	timeStr := formatTime(entry["time"], cfg.TimeFormat)
-	level := formatLevel(entry["level"], cfg.LevelFormat, cfg.Color)
-	msg := fmt.Sprintf("%v", entry["msg"])
+	var timeStr string
+	if !entry.Time.IsZero() {
+		// Use standard time format if parsed successfully
+		timeStr = entry.Time.Format(cfg.TimeFormat)
+	} else {
+		// Fallback to raw time string if parsing failed
+		timeStr = entry.RawTime
+	}
+
+	level := formatLevel(entry.Level, cfg.LevelFormat, cfg.Color)
+	msg := entry.Msg // Already a string
 
 	// Build attributes string
 	attrStr := ""
 	if !cfg.HideAttrs {
-		attrs := flattenMap(entry)
+		attrs := flattenMap(entry.Attrs)
 		sort.Strings(attrs)
 		if len(attrs) > 0 {
 			rawAttrs := strings.Join(attrs, " ")
@@ -34,27 +42,12 @@ func Format(entry map[string]any, cfg config.Config) string {
 	return fmt.Sprintf("%s %s %s%s", timeStr, level, msg, attrStr)
 }
 
-func formatTime(t any, layout string) string {
-	if t == nil {
-		return ""
-	}
-	timeStr := fmt.Sprintf("%v", t)
-	parsed, err := time.Parse(time.RFC3339, timeStr)
-	if err != nil {
-		return timeStr
-	}
-	if layout == "" {
-		layout = "2006-01-02 15:04:05"
-	}
-	return parsed.Format(layout)
-}
-
-func formatLevel(l any, style string, colorize bool) string {
-	levelStr := strings.ToUpper(fmt.Sprintf("%v", l))
+func formatLevel(lvl types.Level, style types.LevelFormat, colorize bool) string {
+	levelStr := strings.ToUpper(string(lvl))
 
 	var output string
 	switch style {
-	case "short":
+	case types.LevelFormatShort:
 		switch levelStr {
 		case "INFO":
 			output = "INF"
@@ -71,7 +64,7 @@ func formatLevel(l any, style string, colorize bool) string {
 				output = levelStr
 			}
 		}
-	case "tiny":
+	case types.LevelFormatTiny:
 		if len(levelStr) > 0 {
 			output = levelStr[:1]
 		}
@@ -103,12 +96,6 @@ func flattenMap(entry map[string]any) []string {
 	var visit func(map[string]any, string)
 	visit = func(m map[string]any, prefix string) {
 		for k, v := range m {
-			if k == "time" || k == "level" || k == "msg" {
-				if prefix == "" {
-					continue
-				}
-			}
-
 			fullKey := k
 			if prefix != "" {
 				fullKey = prefix + "." + k
@@ -117,9 +104,6 @@ func flattenMap(entry map[string]any) []string {
 			if nestedMap, ok := v.(map[string]any); ok {
 				visit(nestedMap, fullKey)
 			} else {
-				// Handle arrays specifically if needed, or just standard formatting
-				// User requested "Simple String" for arrays: key=[item1 item2]
-				// Go's default %v does [item1 item2] for arrays, so that works.
 				attrs = append(attrs, fmt.Sprintf("%s=%v", fullKey, v))
 			}
 		}

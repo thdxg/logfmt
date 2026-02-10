@@ -3,12 +3,14 @@ package config
 import (
 	"reflect"
 	"testing"
+
+	"github.com/thdxg/logfmt/pkg/types"
 )
 
 func TestDefault(t *testing.T) {
 	want := Config{
 		TimeFormat:  "2006-01-02 15:04:05",
-		LevelFormat: "full",
+		LevelFormat: types.LevelFormatFull,
 		Color:       true,
 		HideAttrs:   false,
 	}
