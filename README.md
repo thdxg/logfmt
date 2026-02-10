@@ -19,6 +19,12 @@ $ go run ./cmd/autoscaler 2>&1 | logfmt
 2026-02-10 12:19:01 INFO Tick metric success=1 total=1
 ```
 
+## Motivation
+
+I've been using libraries like [`tint`](https://github.com/lmittmann/tint) to format structured logs in my Go projects.
+Formatting logs is primarily for better readability during local development, but using a library for this means adding an unnecessary dependency to your project.
+Having a local command line tool to format any kind of json logs solves this problem.
+
 ## WIP
 
 - Pretty-printing nested json
