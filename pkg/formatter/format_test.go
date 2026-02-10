@@ -32,7 +32,7 @@ func Test_Format(t *testing.T) {
 				Level: "INFO",
 				Msg:   "Basic log",
 			},
-			config: config.Config{TimeFormat: "2006-01-02 15:04:05", LevelFormat: types.LevelFormatFull},
+			config: config.Config{TimeFormat: "2006-01-02 15:04:05", LevelFormat: "full"},
 			want:   "2006-01-02 15:04:05 INFO Basic log",
 		},
 		{
@@ -111,7 +111,7 @@ func Test_Format(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := Format(tt.entry, tt.config)
+			got := Format(tt.config, tt.entry)
 			if got != tt.want {
 				t.Errorf("\ngot  %q\nwant %q", got, tt.want)
 			}

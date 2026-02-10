@@ -2,78 +2,66 @@ package config
 
 import (
 	"os"
-	"strings"
-
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-	"github.com/thdxg/logfmt/pkg/types"
+	"strconv"
 )
 
 type Config struct {
-	TimeFormat  string            `mapstructure:"time-format"`
-	LevelFormat types.LevelFormat `mapstructure:"level-format"`
-	Color       bool              `mapstructure:"color"`
-	HideAttrs   bool              `mapstructure:"hide-attrs"`
+	TimeFormat  string
+	LevelFormat string
+	Color       bool
+	HideAttrs   bool
 }
 
 func Default() Config {
 	return Config{
 		TimeFormat:  "2006-01-02 15:04:05",
-		LevelFormat: types.LevelFormatFull,
+		LevelFormat: "full",
 		Color:       true,
 		HideAttrs:   false,
 	}
 }
 
-// Load reads config and returns struct.
-// It sets up viper, binds flags (if provided), reads config file, and unmarshals.
-func Load(cfgFile string, flags *pflag.FlagSet) (Config, error) {
-	v := viper.New()
+// Load loads configuration with precedence: Flags > Env > Default.
+// Nil pointers indicate the value was not set by the caller.
+func Load(timeFormat *string, levelFormat *string, color *bool, hideAttrs *bool) Config {
+	cfg := Default()
 
-	// Defaults
-	defaults := Default()
-	v.SetDefault("time-format", defaults.TimeFormat)
-	v.SetDefault("level-format", defaults.LevelFormat)
-	v.SetDefault("color", defaults.Color)
-	v.SetDefault("hide-attrs", defaults.HideAttrs)
-
-	// Bind Flags
-	if flags != nil {
-		if err := v.BindPFlags(flags); err != nil {
-			return defaults, err
+	// 1. Env Vars
+	if v := os.Getenv("LOGFMT_TIME_FORMAT"); v != "" {
+		cfg.TimeFormat = v
+	}
+	if v := os.Getenv("LOGFMT_LEVEL_FORMAT"); v != "" {
+		cfg.LevelFormat = v
+	}
+	if v := os.Getenv("LOGFMT_COLOR"); v != "" {
+		if b, err := strconv.ParseBool(v); err == nil {
+			cfg.Color = b
+		}
+	}
+	if v := os.Getenv("LOGFMT_HIDE_ATTRS"); v != "" {
+		if b, err := strconv.ParseBool(v); err == nil {
+			cfg.HideAttrs = b
 		}
 	}
 
-	// Config File
-	if cfgFile != "" {
-		v.SetConfigFile(cfgFile)
-	} else {
-		home, err := os.UserHomeDir()
-		if err == nil {
-			v.AddConfigPath(home)
-		}
-		v.AddConfigPath(".")
-		v.SetConfigType("yaml")
-		v.SetConfigName(".logfmt")
+	// 2. Flags (override env if explicitly set)
+	if timeFormat != nil {
+		cfg.TimeFormat = *timeFormat
+	}
+	if levelFormat != nil {
+		cfg.LevelFormat = *levelFormat
+	}
+	if color != nil {
+		cfg.Color = *color
+	}
+	if hideAttrs != nil {
+		cfg.HideAttrs = *hideAttrs
 	}
 
-	// Env Vars
-	v.SetEnvPrefix("LOGFMT")
-	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-	v.AutomaticEnv()
-
-	// Read Config (ignore errors if file not found)
-	_ = v.ReadInConfig()
-
-	var cfg Config
-	if err := v.Unmarshal(&cfg); err != nil {
-		return defaults, err
+	// Validation
+	if cfg.LevelFormat != "full" && cfg.LevelFormat != "short" && cfg.LevelFormat != "tiny" {
+		cfg.LevelFormat = "full"
 	}
 
-	// Validate LevelFormat
-	if !cfg.LevelFormat.IsValid() {
-		cfg.LevelFormat = defaults.LevelFormat
-	}
-
-	return cfg, nil
+	return cfg
 }

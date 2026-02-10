@@ -5,7 +5,7 @@ import "time"
 type Entry struct {
 	Time    time.Time
 	RawTime string
-	Level   Level
+	Level   string
 	Msg     string
 	Attrs   map[string]any
 }

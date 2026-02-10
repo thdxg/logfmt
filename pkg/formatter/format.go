@@ -5,26 +5,22 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/fatih/color"
+	"github.com/thdxg/logfmt/pkg/color"
 	"github.com/thdxg/logfmt/pkg/config"
 	"github.com/thdxg/logfmt/pkg/types"
 )
 
-func Format(entry types.Entry, cfg config.Config) string {
-	// Extract standard fields
+func Format(cfg config.Config, entry types.Entry) string {
 	var timeStr string
 	if !entry.Time.IsZero() {
-		// Use standard time format if parsed successfully
 		timeStr = entry.Time.Format(cfg.TimeFormat)
 	} else {
-		// Fallback to raw time string if parsing failed
 		timeStr = entry.RawTime
 	}
 
 	level := formatLevel(entry.Level, cfg.LevelFormat, cfg.Color)
-	msg := entry.Msg // Already a string
+	msg := entry.Msg
 
-	// Build attributes string
 	attrStr := ""
 	if !cfg.HideAttrs {
 		attrs := flattenMap(entry.Attrs)
@@ -32,7 +28,7 @@ func Format(entry types.Entry, cfg config.Config) string {
 		if len(attrs) > 0 {
 			rawAttrs := strings.Join(attrs, " ")
 			if cfg.Color {
-				attrStr = " " + color.New(color.FgHiBlack).Sprint(rawAttrs)
+				attrStr = " " + color.Sprint(color.Gray, rawAttrs)
 			} else {
 				attrStr = " " + rawAttrs
 			}
@@ -42,52 +38,50 @@ func Format(entry types.Entry, cfg config.Config) string {
 	return fmt.Sprintf("%s %s %s%s", timeStr, level, msg, attrStr)
 }
 
-func formatLevel(lvl types.Level, style types.LevelFormat, colorize bool) string {
-	levelStr := strings.ToUpper(string(lvl))
-
+func formatLevel(lvl string, style string, colorize bool) string {
 	var output string
 	switch style {
-	case types.LevelFormatShort:
-		switch levelStr {
+	case "short":
+		switch lvl {
 		case "INFO":
 			output = "INF"
-		case "WARN", "WARNING":
+		case "WARN":
 			output = "WRN"
 		case "ERROR":
 			output = "ERR"
 		case "DEBUG":
 			output = "DBG"
 		default:
-			if len(levelStr) > 3 {
-				output = levelStr[:3]
+			if len(lvl) > 3 {
+				output = lvl[:3]
 			} else {
-				output = levelStr
+				output = lvl
 			}
 		}
-	case types.LevelFormatTiny:
-		if len(levelStr) > 0 {
-			output = levelStr[:1]
+	case "tiny":
+		if len(lvl) > 0 {
+			output = lvl[:1]
 		}
-	default: // full
-		output = levelStr
+	default:
+		output = lvl
 	}
 
 	if !colorize {
 		return output
 	}
 
-	c := color.New()
-	switch levelStr {
+	switch lvl {
 	case "INFO":
-		c.Add(color.FgBlue)
-	case "WARN", "WARNING":
-		c.Add(color.FgYellow)
+		return color.Sprint(color.Blue, output)
+	case "WARN":
+		return color.Sprint(color.Yellow, output)
 	case "ERROR":
-		c.Add(color.FgRed)
+		return color.Sprint(color.Red, output)
 	case "DEBUG":
-		c.Add(color.FgGreen)
+		return color.Sprint(color.Green, output)
 	}
-	return c.Sprint(output)
+
+	return output
 }
 
 func flattenMap(entry map[string]any) []string {
@@ -110,5 +104,6 @@ func flattenMap(entry map[string]any) []string {
 	}
 
 	visit(entry, "")
+
 	return attrs
 }

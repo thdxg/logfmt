@@ -29,7 +29,23 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
-			name:  "logfmt simple",
+			name:  "json with nested attributes",
+			input: `{"time":"2023-01-01T10:00:00Z", "level":"INFO", "msg":"nested", "user":{"name":"Alice"}}`,
+			check: func(t *testing.T, e types.Entry) {
+				if e.Msg != "nested" {
+					t.Errorf("expected msg 'nested', got %v", e.Msg)
+				}
+				user, ok := e.Attrs["user"].(map[string]any)
+				if !ok {
+					t.Fatal("expected user to be a map")
+				}
+				if user["name"] != "Alice" {
+					t.Errorf("expected user.name 'Alice', got %v", user["name"])
+				}
+			},
+		},
+		{
+			name:  "kv simple",
 			input: `time=2023-01-01T10:00:00Z level=INFO msg=hello`,
 			check: func(t *testing.T, e types.Entry) {
 				if e.Msg != "hello" {
@@ -40,6 +56,21 @@ func TestParse(t *testing.T) {
 				}
 				if e.Time.IsZero() {
 					t.Error("expected time to be parsed")
+				}
+			},
+		},
+		{
+			name:  "kv quoted values",
+			input: `level=WARN msg="hello world" key="value with spaces"`,
+			check: func(t *testing.T, e types.Entry) {
+				if e.Msg != "hello world" {
+					t.Errorf("expected msg 'hello world', got %v", e.Msg)
+				}
+				if string(e.Level) != "WARN" {
+					t.Errorf("expected level 'WARN', got %v", e.Level)
+				}
+				if e.Attrs["key"] != "value with spaces" {
+					t.Errorf("expected attr key='value with spaces', got %v", e.Attrs["key"])
 				}
 			},
 		},
@@ -56,31 +87,19 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
-			name:  "logfmt quoted",
-			input: `level=WARN msg="hello world" key="value with spaces"`,
-			check: func(t *testing.T, e types.Entry) {
-				if e.Msg != "hello world" {
-					t.Errorf("expected msg 'hello world', got %v", e.Msg)
-				}
-				if string(e.Level) != "WARN" {
-					t.Errorf("expected level 'WARN', got %v", e.Level)
-				}
-				if e.Attrs["key"] != "value with spaces" {
-					t.Errorf("expected attr key='value with spaces', got %v", e.Attrs["key"])
-				}
-			},
+			name:    "plain text is rejected",
+			input:   "plain text message",
+			wantErr: true,
 		},
 		{
-			name:  "logfmt boolean flag",
-			input: `level=DEBUG msg=test debug_mode`,
-			check: func(t *testing.T, e types.Entry) {
-				if e.Msg != "test" {
-					t.Errorf("expected msg 'test', got %v", e.Msg)
-				}
-				if e.Attrs["debug_mode"] != true {
-					t.Errorf("expected attr debug_mode=true, got %v", e.Attrs["debug_mode"])
-				}
-			},
+			name:    "empty line is rejected",
+			input:   "",
+			wantErr: true,
+		},
+		{
+			name:    "bare token in kv is rejected",
+			input:   "level=INFO bare msg=hello",
+			wantErr: true,
 		},
 	}
 
