@@ -6,6 +6,8 @@
 
 `logfmt` reads structured logs from stdin and formats into readable output
 
+![Demo]("./assets/demo.png")
+
 ## Installation
 
 ### Binary (Recommended)
