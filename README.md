@@ -38,22 +38,13 @@ You can configure `logfmt` using command line flags, environment variables, or a
 #### Flags
 
 ```sh
-logfmt --time-format "15:04:05" --level-format short --color=false
+logfmt -time-format "15:04:05" -level-format=short -no-color
 ```
 
-- `--time-format`: Timestamp format (Go layout). Default: `2006-01-02 15:04:05`
-- `--level-format`: Level style (`full`, `short`, `tiny`). Default: `full`
-- `--color`: Enable/disable colored output. Default: `true`
-- `--hide-attrs`: Show only time, level, and message. Default: `false`
-
-#### Config File (.logfmt.yaml)
-
-```yaml
-time-format: "15:04:05"
-level-format: "short"
-color: false
-hide-attrs: false
-```
+- `-time-format`: Timestamp format (Go layout). Default: `2006-01-02 15:04:05`
+- `-level-format`: Level style (`full`, `short`, `tiny`). Default: `full`
+- `-no-color`: Enable/disable colored output. Default: `true`
+- `-hide-attrs`: Show only time, level, and message. Default: `false`
 
 #### Environment Variables (prefix `LOGFMT_`)
 
